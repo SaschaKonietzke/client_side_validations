@@ -38,7 +38,7 @@ module ClientSideValidations
     end
 
     class Uniqueness < Base
-      IGNORE_PARAMS = %w{case_sensitive id scope}
+      IGNORE_PARAMS = %w{case_sensitive id scope allow_blank}
 
       def response
         if is_unique?
@@ -55,7 +55,7 @@ module ClientSideValidations
 
       def is_unique?
         resource = extract_resource
-        klass = resource.classify.constantize
+        klass = extract_class(resource)
         attribute = request.params[resource].keys.first
         value = request.params[resource][attribute]
 
@@ -63,6 +63,8 @@ module ClientSideValidations
           middleware_klass = ClientSideValidations::ActiveRecord::Middleware
         elsif (defined?(::Mongoid::Document) && klass.included_modules.include?(::Mongoid::Document))
           middleware_klass = ClientSideValidations::Mongoid::Middleware
+        elsif (defined?(::MongoMapper::Document) && klass.included_modules.include?(::MongoMapper::Document)) # storage_room
+          middleware_klass = ClientSideValidations::MongoMapper::Middleware          
         end
 
         middleware_klass.is_unique?(klass, attribute, value, request.params)
@@ -70,6 +72,15 @@ module ClientSideValidations
 
       def extract_resource
         parent_key = (request.params.keys - IGNORE_PARAMS).first
+      end
+      
+      def extract_class(resource)
+        if resource == 'entry' && request.params[:scope] && request.params[:scope][:kollection_id] 
+          kollection = Kollection.find!(request.params[:scope][:kollection_id])
+          kollection.entry_class
+        else
+          resource.classify.constantize
+        end
       end
     end
 

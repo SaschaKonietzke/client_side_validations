@@ -78,6 +78,7 @@
   }
 
   var validateForm = function(form, validators) {
+
     var valid = true;
 
     form.trigger('form:validate:before').find('[data-validate]:input').each(function() {
@@ -161,6 +162,10 @@ var clientSideValidations = {
         }
       },
       numericality: function(element, options) {
+        if (/^\s*$/.test(element.val()) && options.allow_blank == true) {
+          return;
+        }
+        
         if (!/^-?(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d*)?$/.test(element.val())) {
           return options.messages.numericality;
         }
@@ -263,6 +268,10 @@ var clientSideValidations = {
     },
     remote: {
       uniqueness: function(element, options) {
+        if (/^\s*$/.test(element.val()) && options.allow_blank == true) {
+          return;
+        }
+        
         var data = {};
         data['case_sensitive'] = !!options.case_sensitive;
         if (options.id) {
