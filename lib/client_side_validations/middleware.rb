@@ -78,6 +78,8 @@ module ClientSideValidations
         if resource == 'entry' && request.params[:scope] && request.params[:scope][:kollection_id] 
           kollection = Kollection.find!(request.params[:scope][:kollection_id])
           kollection.entry_class
+        elsif resource == 'signup'
+          Account
         else
           resource.classify.constantize
         end
